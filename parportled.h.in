@@ -1,0 +1,20 @@
+/* maxled */
+#undef MAXLED
+
+/* baseport */
+#undef BASEPORT
+
+int led_setperm();
+
+void led_on_all();
+void led_off_all();
+
+int led_on(int led);
+int led_off(int led);
+
+int led_set_on(int *state);
+int led_set_off(int *state);
+
+int led_blink_on(int led, int us_time);
+int led_blink_off(int led);
+

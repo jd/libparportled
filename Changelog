@@ -1,0 +1,8 @@
+libparportled 0.5 - 09/09/03
+- Some bug fix
+
+libparportled 0.2 - 13/04/03
+- Now uses a SONAME
+
+libparportled 0.1 - 15/11/02
+- First release

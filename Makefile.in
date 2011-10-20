@@ -1,0 +1,46 @@
+# Makefile for libparportled
+
+INCLUDE =
+CC = @CC@
+C = led.c
+OBJS = led.o
+CFLAGS = -O2 -fPIC -W -Wall @CFLAGS@ 
+LDFLAGS = @LDFLAGS@ -lpthread 
+
+prefix = $(DEST)@prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+incdir = @includedir@
+
+SHAREDNAME=libparportled.so
+MAJOR_VERSION=0
+FULL_VERSION=0.5
+
+all: $(SHAREDNAME) libparportled.a
+
+$(SHAREDNAME): $(OBJS)
+	$(CC) $(CFLAGS) -Wl,-soname,$(SHAREDNAME).$(MAJOR_VERSION) -shared $(OBJS) -o $(SHAREDNAME).$(FULL_VERSION)
+
+libparportled.a: $(OBJS)
+	ar cru libparportled.a $(OBJS)
+
+install: all
+	install -c -d $(libdir)
+	install -c -d $(incdir)
+	install -c $(SHAREDNAME).$(FULL_VERSION) $(libdir)
+	(cd $(libdir); ln -sf $(SHAREDNAME).$(FULL_VERSION) \
+			$(SHAREDNAME).$(MAJOR_VERSION); ln -sf \
+			$(SHAREDNAME).$(MAJOR_VERSION) $(SHAREDNAME))
+	install -c libparportled.a $(libdir)
+	install -c -m644 parportled.h $(incdir)
+
+uninstall:
+	rm -f $(libdir)/libparportled.so
+	rm -f $(incdir)/libparportled.a
+	rm -f $(incdir)/parportled.h
+
+clean:
+	rm -f $(OBJ) ledcontrol $(SHAREDNAME).$(FULL_VERSION) libparportled.a core $(OBJS) *~ config.cache config.log config.guess config.status config.sub
+
+distclean: clean
+	rm -f config.guess config.sub config.status Makefile parportled.h

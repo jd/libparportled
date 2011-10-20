@@ -1,0 +1,166 @@
+>From joev@mikasa.WPI.EDU Sun Jan  1 18:34:40 EST 1995
+Article: 144 of comp.os.linux.development.system
+Path: bigblue.oit.unc.edu!concert!gatech!bloom-beacon.mit.edu!news2.near.net!news.mathworks.com!bigboote.WPI.EDU!mikasa.WPI.EDU!joev
+From: joev@mikasa.WPI.EDU (Joseph W. Vigneau)
+Newsgroups: comp.os.linux.development.system
+Subject: My LED performance meter thing...
+Date: 1 Jan 1995 23:18:28 GMT
+Organization: Worcester Polytechnic Institute
+Lines: 147
+Message-ID: <3e7d84$or5@bigboote.WPI.EDU>
+NNTP-Posting-Host: mikasa.wpi.edu
+
+Last week, someone wrote here asking about robotic contol via Linux... I
+responded explaining how I used the parallel port to control a sort-of
+"performance meter".  I've recieved a lot of requests on how I did this.
+Here's the story:
+
+Last year, at school (WPI), Silicon Graphics brought this huge 18-wheel
+truck that is basically a demonstrationmobile.  Inside it had Indys,
+Crimsons, and some of their big machines like a couple of Onyxes and an
+*monsterous* Power Challenge.. I'm relatively young (17 at the time), and
+I'd never seen a computer this big before: It looked like an oversized
+refrigerator, with cooling ducts running in and out of it!  On the front of
+this beast, was a little LCD backlit readout about the size of my HP-48G's
+display.  It was labeled "CPU Activity", and had a little bar chart showing
+how hard each processor was working.  I thought it would be cool to have one
+of these mounted on my Linux box :)
+
+I finally got a computer of my own this past November, and finally got to run
+Linux on my own, instead of administering it for a number of people on my
+floor.  I had a Shack attack, and went to Radio Shack, and picked up the 
+following items: a breadboard, a 10-bar LED, breadboard wires, and a 
+package of assorted resistors. [Side note: While at the Shack with a few of
+my suitemates, we were way in back in the component section (the only good
+part of the store any more), and were approached by a lady who thought we
+were employees there :). Back to the project.]
+
+It was wired up like this, via the parallel port:
+
+                                pin 20 (ground)
+                                  |
+               150ohm     LED     |
+pin 2 (D0) ----/\/\/------|>|-----+
+                                  |
+pin 3 (D1) ----/\/\/------|>|-----+
+                                  |
+pin 4 (D2) ----/\/\/------|>|-----+
+
+            [...]
+                                  |
+pin 9 (D7) ----/\/\/------|>|-----+
+
+Note: 2 of the LEDs weren't connected.
+
+Now, the software part:
+
+Two files were used: the first is a routine written by a roomate
+(damianf@wpi.edu) used to blast raw bytes at a port, and read them. Please
+contact him for more info, or if you want to use it in a progrm of your own.
+
+static inline int port_in( int port )
+{
+   unsigned char value;
+  __asm__ volatile ("inb %1,%0"
+                    : "=a" (value)
+                    : "d" ((unsigned short)port));
+   return value;
+}
+
+static inline void port_out( unsigned short int port, unsigned char val )
+{
+  __asm__ volatile (
+                    "outb %0,%1\n"
+                    :
+                    : "a" (val), "d" (port)
+                    );
+}
+
+I originally wanted to use the load average to determine how many of the
+LEDs lit up, but realized that it was only updated every minute.. I wanted a
+display similar to xload or xosview, but I really coun't figure out how they
+were determined.. What I ended up doing was reading the output of 'ps aux',
+and summing up the %CPU column.  I then converted that into a number
+representing how many LEDs should light, and blast it at the printer port.
+
+NOTE: I wrote and built this thing in a bout 90 minutes, so it's quick and
+dirty, and not at all as elegant as I hoped it to be.
+
+Here's the program:
+
+/* meter.c by Joseph W. Vigneau (joev@wpi.edu) (c)1994.
+   This program is covered under the GNU copyleft agreement.
+*/
+
+#include <stdio.h>
+#include <unistd.h>
+#include <errno.h>
+#include <time.h>
+#include "port.h"
+
+float loadavg(void)
+{
+  FILE *f;
+  char line[80];
+  float cpu = 0.0, totalcpu = 0.0;
+
+  if((f = popen("/bin/ps -aux","r"))==NULL) {
+    fprintf(stderr,"Couldn't fork /bin/ps.\n");
+    exit(1);
+  }
+
+  fgets(line, 80, f);
+  while(!feof(f)) {
+    sscanf(line,"%*s %*d %f",&cpu);
+    totalcpu += cpu;
+    fgets(line, 80, f);
+  }
+/*  printf("TOTAL: %f\n",totalcpu); */
+  pclose(f);
+  return totalcpu/100.0;
+}
+
+
+main()
+{
+  unsigned char lights;
+  float ave;
+  char dir = 0;
+  char foo[10];
+  register unsigned char numlights, i;
+
+  if(ioperm(0x378,1,1)) {
+    fprintf(stderr,"ioperm error.\n");
+    exit(1);
+  }
+
+  while(1) {
+    ave = loadavg();
+    numlights = (int)(ave*8.0);
+/*    printf("ave = %f, numlights = %d\n",ave, numlights); */
+
+    lights = 0;
+    for(i=0;i<numlights;i++)
+      lights |= (1<<i);
+
+    port_out(0x378, lights);
+    usleep(750000L);
+  }
+}
+
+This program has to be suid root, due to the ioperm call.
+
+Good luck, and have fun! Your mileage may vary.. If this makes your computer
+explode or something, I'm not responsible, etc..  If you improve upon this,
+post it here, so everyone else can see!
+
+-- 
+joev@wpi.edu               WPI Computer Science '97                      Linux!
+             <a href="http://www.wpi.edu/~joev"> Click Here! </a>
+
+
+
+
+
+
+

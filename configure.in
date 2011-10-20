@@ -1,0 +1,48 @@
+# Process this file with autoconf to produce a configure script.
+AC_INIT(led.c, 0.1, julien@jdanjou.org)
+AC_CONFIG_HEADER([parportled.h])
+
+# Checks for programs.
+AC_PROG_CC
+
+# Checks for libraries.
+# FIXME: Replace `main' with a function in `-lpthread':
+AC_CHECK_LIB([pthread], [pthread_create])
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([stdlib.h unistd.h sys/io.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+
+# Checks for library functions.
+AC_CHECK_FUNCS(malloc)
+
+# Checks for options
+AC_DEFINE(MAXLED,8,[maxled])
+AC_DEFINE(BASEPORT,0x378,[baseport])
+
+AC_ARG_WITH(maxled,
+[--with-maxled=MAXLED      Set the number of connected LED (Default is 8)],
+ [ if test "x$withval" != "xno" ; then
+     if test "x$withval" != "xyes" ; then
+	AC_DEFINE_UNQUOTED(MAXLED,$withval,[maxled])
+	fi
+ fi ],)
+
+AC_ARG_WITH(baseport,
+[--with-port=BASEPORT      Set the IO address of parralel port (Default is 0x378)],
+ [ if test "x$withval" != "xno" ; then
+     if test "x$withval" != "xyes" ; then
+	AC_DEFINE_UNQUOTED(BASEPORT,$withval,[baseport])
+	fi
+ fi ],)
+
+
+
+dnl Checks for programs.
+AC_PROG_INSTALL
+
+dnl AC_CONFIG_FILES([Makefile])
+AC_CONFIG_HEADER(config.h)
+AC_OUTPUT(Makefile)
