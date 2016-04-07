@@ -1,26 +1,18 @@
-libparportled - 0.1.1
--------------------
-This library is intended to control a LED device plugged on parallel port.
-A such device is composed of a number of LED (default is 8, maybe more is
+# libparportled
+
+This library is intended to control a LED device plugged on parallel port. A
+such device is composed of a number of LED (default is 8, maybe more is
 possible, I don't know) plugged on parallel port.
 
-Author
-------
-Julien Danjou <julien@jdanjou.org>
-http://jdanjou.org/libparportled/
+# Usage
 
-Usage
------
-gcc option: -lparportled
-#include <parportled.h>
+* MAXLED is defined as the number of LED available. (--with-maxled= in
+  configure option)
 
-MAXLED is defined as the number of LED available.
-(--with-maxled= in configure option)
+* BASEPORT is the IO address of parallel port (--with-port= in configure
+  option)
 
-BASEPORT is the IO address of parallel port
-(--with-port= in configure option)
-
-Functions available are:
+# API
 
 int led_setperm();
 Initialise the parallel port, MUST be root !
