@@ -4,6 +4,8 @@ This library is intended to control a LED device plugged on parallel port. A
 such device is composed of a number of LED (default is 8, maybe more is
 possible, I don't know) plugged on parallel port.
 
+![libparportled](leds.jpg)
+
 # Usage
 
 * MAXLED is defined as the number of LED available. (--with-maxled= in
